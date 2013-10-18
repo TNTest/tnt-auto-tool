@@ -82,7 +82,7 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 	
 	public Date getRushStartTime() {
 		Date rstDate = null;
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 			rstDate = sdf.parse(ps.getProperty("rush.start.time"));
 		} catch (ParseException e) {
