@@ -33,38 +33,12 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 	private static Properties ps = new Properties();
 	private static FileConfiguration _instance;
 	
-	public String getDirectWinStr() {
-		return ps.getProperty("direct.win.string");
-	}
-	
 	public String getDirectCallUrl() {
 		return ps.getProperty("direct.call.url");
 	}
 	
-	public int getDirectMaxGap() {
-		String numStr = ps.getProperty("direct.max.gap");
-		return Integer.valueOf(numStr);
-	}
-	
-	public int getDirectMaxCount() {
-		String numStr = ps.getProperty("direct.call.max.count");
-		return Integer.valueOf(numStr);
-	}
-	
-	public String getSimBuySuccessText() {
-		return ps.getProperty("simulate.success.text");
-	}
-	
-	public String getSimBuyFailText() {
-		return ps.getProperty("simulate.fail.text");
-	}
-	
 	public String getRebackId() {
 		return ps.getProperty("reback.id");
-	}
-	
-	public String getRebackText() {
-		return ps.getProperty("reback.text");
 	}
 	
 	public String getLoginUrl() {
@@ -73,6 +47,10 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 	
 	public String getRushBuyEntryUrl() {
 		return ps.getProperty("rushbuy.entry.url");
+	}
+	
+	public String getRunJSStr() {
+		return ps.getProperty("simulate.js.string");
 	}
 
 	public int getActionTimeOut() {
@@ -91,10 +69,17 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 		return rstDate;
 	}
 	
-	public String getImdtBuyId() {
-		return ps.getProperty("immidatebuy.id");
+	public Date getRushEndTime() {
+		Date retDate = null;
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try {
+			retDate = sdf.parse(ps.getProperty("rush.end.time"));
+		} catch (ParseException e) {
+			log.fatal("rush end time parsing failed!!!", e);
+		}
+		return retDate;
 	}
-
+	
 	public Entry<String, String>[] getAccounts() {
 		Map <String, String> acMap = new HashMap<String, String>();
 		String accountsStr = ps.getProperty("accounts");
@@ -135,8 +120,8 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 	 */
 	@Override
 	public void onFileChange(File file) {
-		log.info(ps);
 		loadConfs();
+		log.info("Configuration changed, reloading configruation: " + ps);
 	}
 
 	/**
@@ -170,11 +155,10 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 
 	@Override
 	public void onStart(FileAlterationObserver observer) {
-		loadConfs();
 		super.onStart(observer);
 	}
 
-	private void loadConfs() {
+	public void loadConfs() {
 		try {
 			ps.load(new InputStreamReader( new FileInputStream(new File(PATH_SYS_CONF)), "UTF-8"));
 		} catch (FileNotFoundException e) {
@@ -198,6 +182,8 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 					PATH_SYS_CONF);
 
 			_instance = new FileConfiguration();
+			_instance.loadConfs();
+			log.info("First load configruation: " + ps);
 
 			observer.addListener(_instance); 
 			FileAlterationMonitor monitor = new FileAlterationMonitor(interval,

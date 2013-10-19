@@ -1,15 +1,20 @@
 package com.tntest.automation;
 
+import java.io.StringReader;
+import java.util.Date;
 import java.util.Map.Entry;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 /*
@@ -19,8 +24,15 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public class MainProcess {
 
 	private static final FileConfiguration CONFS = FileConfiguration.getInstance();
+	private static Logger log = Logger.getLogger(MainProcess.class);
 
 	public static void main(String[] args) {
+		long now = System.currentTimeMillis();
+		Date endTime = CONFS.getRushEndTime();
+		if (now - endTime.getTime() > 0) {
+			log.warn("End time[" + endTime + "] is up. Exiting JVM!");
+			System.exit(0);
+		}
 		int stn = CONFS.getSimThreadNum();
 		int dtn = CONFS.getDrctThreadNum();
 		Entry<String, String>[] acs = CONFS.getAccounts();
@@ -32,6 +44,8 @@ public class MainProcess {
 			t.setAc_pwd(ac.getValue());
 			t.setMode(1);
 			t.start();
+			log.info("simulate browser thread[" + (i + 1) + "](account: " + t.getAc_name() + ") starting...");
+
 		}
 		// direct call ajax mode
 		for (int i = 0; i < dtn; i++) {
@@ -41,6 +55,8 @@ public class MainProcess {
 			t.setAc_pwd(ac.getValue());
 			t.setMode(2);
 			t.start();
+			log.info("direct call browser thread[" + (i + 1) + "](account: " + t.getAc_name() + ") starting...");
+
 		}
 	}
 
@@ -83,112 +99,121 @@ class FireFoxThread extends Thread {
 	public void rushBuyBySimulate() {
 		driver.get(CONFS.getRushBuyEntryUrl());
 
-		/*
-		 * (new WebDriverWait(driver, 10)).until(new
-		 * ExpectedCondition<Boolean>() { public Boolean apply(WebDriver d) {
-		 * return driver.findElement(By.id(CONFS.getImdtBuyId())).; } });
-		 */
-		// Date now = new Date();
-		// Date rst = CONFS.getRushStartTime();
-		// long duration = (rst.getTime() - now.getTime()) / 1000; // seconds
-		// driver.findElement(By.id(CONFS.getImdtBuyId())).click();
-		// log.debug("body: " +
-		// driver.findElement(By.cssSelector("BODY")).getText());
-
 		// loop until find rush buy button
-		boolean startRush = false;
-		while (!startRush) {
+		boolean success = false;
+		boolean timeEnd = false;
+		int count = 1;
+		while (!timeEnd && !success) {
 			try {
-				/*
-				 * (new WebDriverWait(driver, 10)).until(ExpectedConditions
-				 * .presenceOfAllElementsLocatedBy(By.id(CONFS
-				 * .getImdtBuyId())));
-				 */
-				driver.findElement(By.id(CONFS.getImdtBuyId())).click();
-				startRush = true;
-			} catch (TimeoutException e) {
-				log.info("finding element timeout.", e);
-			} catch (Exception e) {
-				log.error("error", e);
-			}
-			if (!startRush) {
-				driver.navigate().refresh();
-			}
-		}
 
-		// driver.findElement(By.id("reback")).click();
-		// redo queue otherwise finished.
-		boolean canQueue = true;
-		boolean win = false;
-		while (canQueue) {
-			try {
-				new WebDriverWait(driver, 15).until(new ExpectedCondition<Boolean>() {
-					public Boolean apply(WebDriver d) {
-						return d.findElement(By.id(CONFS.getRebackId())).getText().endsWith(CONFS.getRebackText());
-					}
-				});
+				String originUrl = driver.getCurrentUrl();
+				JavascriptExecutor jsRun = (JavascriptExecutor) driver;
+				WebDriverWait wait = new WebDriverWait(driver, CONFS.getActionTimeOut());
+
+				String jsStr = CONFS.getRunJSStr();
+				// make button available
+				jsRun.executeScript(jsStr);
+				wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//body"))));
+				// click button
 				driver.findElement(By.id(CONFS.getRebackId())).click();
-			} catch (TimeoutException e) {
-				log.info("finding element timeout. ", e);
-				canQueue = false;
-				String bodyStr = driver.findElement(By.cssSelector("BODY")).getText();
-				if ( bodyStr.contains(CONFS.getSimBuySuccessText()) ) {
-					win = true;
-					log.info("Maybe you win! detail: \n" + bodyStr);
-				} else if (bodyStr.contains(CONFS.getSimBuyFailText()) ) {
-					log.info("Maybe you fail! detail: \n" + bodyStr);
+				wait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//body"))));
+				log.info("[" + count + "](account: " + this.ac_name + ")call: " + jsStr
+						+ " and reback.click() via webdriver.");
 
-				}else {
-					log.info("Unknown...  detail: \n" + bodyStr);
+				String currentUrl = driver.getCurrentUrl();
+				log.info("Last url:" + originUrl + ", current url: " + currentUrl);
+				if (currentUrl != null && !currentUrl.equals(originUrl)) {
+					success = true;
+					log.info("Maybe you[" + this.ac_name + "] win!");
 				}
+			} catch (TimeoutException e) {
+				log.info("finding element timeout. \n" +   e.getMessage().substring(0, e.getMessage().indexOf("\n")));
+			} catch (WebDriverException e) {
+				log.error("web driver exception: " + e.getMessage().substring(0, e.getMessage().indexOf("\n")));
+				if (!success) { driver.navigate().refresh(); }
 			} catch (Exception e) {
 				log.error("error", e);
+				if (!success) { driver.navigate().refresh(); }
 			}
+			long now = System.currentTimeMillis();
+			timeEnd = now - CONFS.getRushEndTime().getTime() > 0 ? true : false;
+			count++;
+			/*
+			 * if (!success) { driver.navigate().refresh(); }
+			 */
 		}
+		if (timeEnd)
+			log.info("End time["+CONFS.getRushEndTime()+"] is up. ");
 
-		// driver.findElement(By.linkText("重新进入")).click();
 
 	}
 
 	public void rushBuyByDirect() {
-		Long rst = CONFS.getRushStartTime().getTime();
+		Date rst = CONFS.getRushStartTime();
 		log.info("rush start time (millis): " + rst);
-		Long now = System.currentTimeMillis();
-		Long waitTime = (rst - now); // millis
-		try {//wait to start rush buy
-			if (waitTime > 0)
+		Long waitTime = (rst.getTime() - System.currentTimeMillis()); // millis
+		try {// wait to start rush buy
+			if (waitTime > 0) {
+				log.info("Sleeping " + (waitTime / 1000) + "s to get to start time[" + rst + "]...");
 				Thread.sleep(waitTime);
+			}
 		} catch (InterruptedException e) {
 			log.error("thread exception: ", e);
 		}
-		boolean win = false;
-		int max_count = CONFS.getDirectMaxCount();
-		int count = 0;
-		while (count <= max_count && !win) {
-			Long tmstp = System.currentTimeMillis();
-			log.info("current time (millis): " + tmstp);
+		boolean success = false;
+		int count = 1;
+		boolean timeEnd = false;
+		while (!timeEnd && !success) {
+			String jsonStr = null;
+			String jsSource = null;
+			try {
+				//implicit call, 5s timeout
+				WebDriverWait normaWait = new WebDriverWait(driver, CONFS.getActionTimeOut());
+				WebDriverWait quickWait = new WebDriverWait(driver, 1);
+				Long tmstp = System.currentTimeMillis();
+				log.info("current time (millis): " + tmstp);
 
-			Long gap = (tmstp - rst) / 1000; // second
-			int max_gap = CONFS.getDirectMaxGap();
-			String direct_call_url = CONFS.getDirectCallUrl();
-			if (gap > 0 && gap <= max_gap) // <= max_gap seconds
-				driver.get(direct_call_url + tmstp);
-			else {
-				tmstp = rst + (int) (Math.random() * 1000 * max_gap);
-				driver.get(direct_call_url + tmstp); // <=max gap seconds
-																							
+				Long gap = (tmstp - rst.getTime()) / 1000; // second
+				log.info("gap time: " + gap);
+				// int max_gap = CONFS.getDirectMaxGap();
+				String direct_call_url = CONFS.getDirectCallUrl();
+				direct_call_url += tmstp;
+				driver.get(direct_call_url);
+				log.info("[" + count + "]request: " + direct_call_url);
+				normaWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//body"))));
+				log.info("page source: " + driver.getPageSource().substring(0, 1000));
+				//quickWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//pre"))));
+				jsSource = driver.findElement(By.xpath("//pre")).getText().trim();
+				jsonStr = jsSource.substring("hdcontrol(".length(), jsSource.length() - ")".length());
+
+				JSONObject jsonObj = new JSONObject(jsonStr);
+				log.debug("json object: " + jsonObj);
+				JSONObject statusObj = jsonObj.getJSONObject("status");
+				if (statusObj.getBoolean("allow")) {
+					success = true;
+					String directCallUrl = statusObj.getJSONObject("miphone").getString("hdurl");
+					directCallUrl += CONFS.getDirectCallUrl();
+					log.info("[" + this.ac_name + "]Succeed to get the next jump url: " + directCallUrl);
+					driver.get(directCallUrl);
+					normaWait.until(ExpectedConditions.visibilityOf(driver.findElement(By.xpath("//body"))));
+				} else {
+					log.info("Maybe you[" + this.ac_name + "] failed to jump to next step!");
+				}
+			} catch (JSONException e) {
+				log.error("Parsing json failed! json string: " + jsonStr, e);
+			} catch (TimeoutException e) {
+				log.info("finding element timeout. \n" +   e.getMessage().substring(0, e.getMessage().indexOf("\n")));
+			} catch (WebDriverException e) {
+				log.error("web driver exception: " + e.getMessage().substring(0, e.getMessage().indexOf("\n")));
+			} catch (Exception e) {
+				log.error("error! ", e);
 			}
-			String pageSource = driver.getPageSource();
-			String directWinStr =CONFS.getDirectWinStr();
-			if (pageSource.contains(directWinStr)) {
-				log.info("Maybe you win! response: \n" + pageSource.substring(0, pageSource.length() > 1000?1000:pageSource.length()) + "...\n --account: "
-						+ getAc_name() + ", --timestamp: " + tmstp + ", count:" + count);
-				win = true;
-			} else {
-				log.info("Maybe you fail! response: \n" + pageSource.substring(0, pageSource.length() > 1000?1000:pageSource.length())  + "...\n --account: "
-						+ getAc_name() + ", --timestamp: " + tmstp + ", count:" + count);
-			}
+			long now = System.currentTimeMillis();
+			timeEnd = now - CONFS.getRushEndTime().getTime() > 0 ? true : false;
 			count++;
+		}
+		if (timeEnd){
+			log.info("End time["+CONFS.getRushEndTime()+"] is up. ");
 		}
 	}
 
