@@ -49,8 +49,17 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 		return ps.getProperty("rushbuy.entry.url");
 	}
 	
-	public String getRunJSStr() {
-		return ps.getProperty("simulate.js.string");
+	public String getStartJSStr() {
+		return ps.getProperty("simulate.start.js.string");
+	}
+	
+	public String getShowBoxJSStr() {
+		return ps.getProperty("simulate.showbox.js.string");
+	}
+	
+	public int getLoopCallInterval() {
+		String numStr = ps.getProperty("loop.call.interval");
+		return Integer.valueOf(numStr);
 	}
 
 	public int getActionTimeOut() {

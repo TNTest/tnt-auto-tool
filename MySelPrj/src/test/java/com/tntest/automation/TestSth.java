@@ -13,7 +13,7 @@ public class TestSth {
 	
 	public static void main(String[] args) {
 		
-		sth2();
+		System.out.print(System.currentTimeMillis());
 	}
 	
 	public static void sth1() {
@@ -39,6 +39,33 @@ public class TestSth {
 				System.out.println("["+count+"] "+Util.decode(line));
 				count++;
 			}
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public static void sth3() {
+		String line = null;
+		try {
+			BufferedReader r = new BufferedReader(new FileReader(new File("other/data.txt")));
+			FileReader fr = new FileReader(new File("other/abc.js"));
+			String fileContent = "";
+			int ch = 0; 
+			while((ch = fr.read())!=-1 ) 
+			{ 
+				fileContent += (char)ch; 
+			}
+			int count = 0;
+			while ((line = r.readLine())!=null) {
+				//System.out.println("["+count+"] "+Util.decode(line));
+				fileContent = fileContent.replace("_$["+count+"]", "'"+Util.decode(line)+"'");
+				count++;
+			}
+			System.out.println(fileContent);
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
