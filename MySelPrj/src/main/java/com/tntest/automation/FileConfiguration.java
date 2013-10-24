@@ -33,6 +33,10 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 	private static Properties ps = new Properties();
 	private static FileConfiguration _instance;
 	
+	public String getNextBaseUrl() {
+		return ps.getProperty("direct.next.base.url");
+	}
+	
 	public String getDirectCallUrl() {
 		return ps.getProperty("direct.call.url");
 	}
@@ -65,6 +69,11 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 	public int getActionTimeOut() {
 		String numStr = ps.getProperty("action.timeout");
 		return Integer.valueOf(numStr);
+	}
+	
+	public String getSetCookieJsByValue(String value){
+		String jsWithString = ps.getProperty("direct.setcookie.js.string");
+		return jsWithString.replace("#V#", value);
 	}
 	
 	public Date getRushStartTime() {
