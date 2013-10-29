@@ -13,7 +13,7 @@ public class TestSth {
 	
 	public static void main(String[] args) {
 		
-		System.out.print(System.currentTimeMillis());
+		testMultiConfs2();
 	}
 	
 	public static void sth1() {
@@ -73,6 +73,76 @@ public class TestSth {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	public static void testMultiConfs() {
+		MainProcess.checkPreCondition();
+		MainProcess.urlFIleInit();
+		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/notAllowJsonWithHdurl.html?a=");
+		MainProcess.CONFS.getPs().setProperty("direct.thread.num", "1");
+		MainProcess.startThreads();
+		
+		try {
+			Thread.sleep(20000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonNoHdurl.html?a=");
+		//MainProcess.CONFS.getPs().setProperty("direct.thread.num", "1");
+		MainProcess.startThreads();
+		
+		try {
+			Thread.sleep(20000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonWithHdurl.html?a=");
+		//MainProcess.CONFS.getPs().setProperty("direct.thread.num", "1");
+		MainProcess.startThreads();
+
+
+	}
+	
+	public static void testMultiConfs2() {
+		MainProcess.checkPreCondition();
+		MainProcess.urlFIleInit();
+		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/notAllowJsonWithHdurl.html?a=");
+		MainProcess.CONFS.getPs().setProperty("direct.thread.num", "2");
+		MainProcess.startThreads();
+		
+		try {
+			Thread.sleep(20000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonNoHdurl.html?a=");
+		
+
+	}
+	
+	public static void testMultiConfs3() {
+		MainProcess.checkPreCondition();
+		MainProcess.urlFIleInit();
+		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/notAllowJsonNoHdurl.html?a=");
+		MainProcess.CONFS.getPs().setProperty("direct.thread.num", "5");
+		MainProcess.startThreads();
+		
+		try {
+			Thread.sleep(20000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonWithHdurl.html?a=");
+		
+
 	}
 
 }

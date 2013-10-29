@@ -87,6 +87,12 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 		return rstDate;
 	}
 	
+	public String getRushStartTimeStr() {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Date startTIme = getRushStartTime();
+		return sdf.format(startTIme);
+	}
+	
 	public Date getRushEndTime() {
 		Date retDate = null;
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -124,6 +130,10 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 	public int getDrctThreadNum() {
 		String numStr = ps.getProperty("direct.thread.num");
 		return Integer.valueOf(numStr);
+	}
+	
+	Properties getPs() {
+		return ps;
 	}
 
 	/**
