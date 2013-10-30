@@ -13,7 +13,7 @@ public class TestSth {
 	
 	public static void main(String[] args) {
 		
-		testMultiConfs2();
+		testMultiConfs5();
 	}
 	
 	public static void sth1() {
@@ -76,11 +76,10 @@ public class TestSth {
 	}
 	
 	public static void testMultiConfs() {
-		MainProcess.checkPreCondition();
-		MainProcess.urlFIleInit();
-		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/notAllowJsonWithHdurl.html?a=");
-		MainProcess.CONFS.getPs().setProperty("direct.thread.num", "1");
-		MainProcess.startThreads();
+		MainProcess m = new MainProcess();
+		m.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/notallowJsonWithHdurlPhone.html?a=");
+		m.CONFS.getPs().setProperty("direct.thread.num", "1");
+		m.startThreads();
 		
 		try {
 			Thread.sleep(20000);
@@ -89,9 +88,9 @@ public class TestSth {
 			e.printStackTrace();
 		}
 		
-		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonNoHdurl.html?a=");
+		m.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonNoHdurl.html?a=");
 		//MainProcess.CONFS.getPs().setProperty("direct.thread.num", "1");
-		MainProcess.startThreads();
+		m.startThreads();
 		
 		try {
 			Thread.sleep(20000);
@@ -100,19 +99,18 @@ public class TestSth {
 			e.printStackTrace();
 		}
 		
-		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonWithHdurl.html?a=");
+		m.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonWithHdurlPhone.html?a=");
 		//MainProcess.CONFS.getPs().setProperty("direct.thread.num", "1");
-		MainProcess.startThreads();
+		m.startThreads();
 
 
 	}
 	
 	public static void testMultiConfs2() {
-		MainProcess.checkPreCondition();
-		MainProcess.urlFIleInit();
-		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/notAllowJsonWithHdurl.html?a=");
-		MainProcess.CONFS.getPs().setProperty("direct.thread.num", "2");
-		MainProcess.startThreads();
+		MainProcess m = new MainProcess();
+		m.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/notallowJsonWithHdurlPhone.html?a=");
+		m.CONFS.getPs().setProperty("direct.thread.num", "2");
+		m.startThreads();
 		
 		try {
 			Thread.sleep(20000);
@@ -121,17 +119,16 @@ public class TestSth {
 			e.printStackTrace();
 		}
 		
-		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonNoHdurl.html?a=");
+		m.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonNoHdurl.html?a=");
 		
 
 	}
 	
 	public static void testMultiConfs3() {
-		MainProcess.checkPreCondition();
-		MainProcess.urlFIleInit();
-		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/notAllowJsonNoHdurl.html?a=");
-		MainProcess.CONFS.getPs().setProperty("direct.thread.num", "5");
-		MainProcess.startThreads();
+		MainProcess m = new MainProcess();
+		m.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/notAllowJsonNoHdurl.html?a=");
+		m.CONFS.getPs().setProperty("direct.thread.num", "5");
+		m.startThreads();
 		
 		try {
 			Thread.sleep(20000);
@@ -140,9 +137,38 @@ public class TestSth {
 			e.printStackTrace();
 		}
 		
-		MainProcess.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonWithHdurl.html?a=");
+		m.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonWithHdurlPhone.html?a=");
 		
 
+	}
+	
+	public static void testMultiConfs4() {
+		MainProcess m1 = new MainProcess();
+		m1.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonWithHdurlPhone.html?a=");
+		m1.CONFS.getPs().setProperty("direct.thread.num", "1");
+		m1.CONFS.getPs().setProperty("accounts", "13888307667:mask1216:miphone");
+		m1.startThreads();
+		
+		MainProcess m2 = new MainProcess();
+		m2.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonWithHdurlBox.html?a=");
+		m2.CONFS.getPs().setProperty("direct.thread.num", "1");
+		m2.CONFS.getPs().setProperty("accounts", "13888830524:147258:mibox");
+		m2.startThreads();
+		
+		MainProcess m3 = new MainProcess();
+		m3.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonWithHdurlTV.html?a=");
+		m3.CONFS.getPs().setProperty("direct.thread.num", "1");
+		m3.CONFS.getPs().setProperty("accounts", "18908892611:yun18tao:mitv");
+		m3.startThreads();
+
+	}
+	
+	public static void testMultiConfs5() {
+		MainProcess m1 = new MainProcess();
+		m1.CONFS.getPs().setProperty("direct.call.url", "http://localhost:8080/WebTest/allowJsonWithHdurlAll.html?a=");
+		m1.CONFS.getPs().setProperty("direct.thread.num", "6");
+		m1.CONFS.getPs().setProperty("accounts", "13888307667:mask1216:miphone,13888830524:147258:mibox,18908892611:yun18tao:mitv");
+		m1.startThreads();
 	}
 
 }

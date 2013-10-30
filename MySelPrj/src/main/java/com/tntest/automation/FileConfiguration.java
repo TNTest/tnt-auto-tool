@@ -3,13 +3,14 @@ package com.tntest.automation;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -30,7 +31,7 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 
 	private static final String PATH_SYS_CONF = "conf/conf.properties";
 	private static Logger log = Logger.getLogger(FileConfiguration.class);
-	private static Properties ps = new Properties();
+	private Properties ps = new Properties();
 	private static FileConfiguration _instance;
 	
 	public String getNextBaseUrl() {
@@ -104,21 +105,25 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 		return retDate;
 	}
 	
-	public Entry<String, String>[] getAccounts() {
-		Map <String, String> acMap = new HashMap<String, String>();
+	public List<Account> getAccounts() {
+		List<Account> acList = new ArrayList<Account>();
 		String accountsStr = ps.getProperty("accounts");
 		String[] accounts = accountsStr.split(",");
 		if (accounts != null && accounts.length > 0) {
 			for (int i = 0; i < accounts.length; i++) {
 				String[] account = accounts[i].split(":");
-				if (account != null && account.length == 2){
-					acMap.put(account[0], account[1]);
+				if (account != null && account.length == 3){
+					Account ac = new Account();
+					ac.setId(account[0]);
+					ac.setPwd(account[1]);
+					ac.setBuyType(account[2]);
+					acList.add(ac);
 				}
 				
 			}
 		}
-		log.info("load account: " + acMap.keySet().toString());
-		return acMap.entrySet().toArray(new Entry[0]);
+		log.info("load account: " + acList.toString());
+		return acList;
 	}
 	
 	public int getSimThreadNum() {
@@ -205,26 +210,30 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 	synchronized public static FileConfiguration getInstance() {
 
 		if (_instance == null) {
-			long interval = TimeUnit.SECONDS.toMillis(1);
-			FileAlterationObserver observer = new FileAlterationObserver(
-					PATH_SYS_CONF);
-
-			_instance = new FileConfiguration();
-			_instance.loadConfs();
-			log.info("First load configruation: " + ps);
-
-			observer.addListener(_instance); 
-			FileAlterationMonitor monitor = new FileAlterationMonitor(interval,
-					observer);
-			try {
-				monitor.start();
-			} catch (Exception e) {
-				log.fatal("Init configuration failed! Exit JVM!!!", e);
-				System.exit(1);
-			}
+			_instance = generateInstance();
 		}
 
 		return _instance;
+	}
+	
+	public static FileConfiguration generateInstance() {
+		long interval = TimeUnit.SECONDS.toMillis(1);
+		FileAlterationObserver observer = new FileAlterationObserver(
+				PATH_SYS_CONF);
+		FileConfiguration instance = new FileConfiguration();
+		instance.loadConfs();
+		log.info("First load configruation: " + instance.getPs());
+
+		observer.addListener(instance); 
+		FileAlterationMonitor monitor = new FileAlterationMonitor(interval,
+				observer);
+		try {
+			monitor.start();
+		} catch (Exception e) {
+			log.fatal("Init configuration failed! Exit JVM!!!", e);
+			System.exit(1);
+		}
+		return instance;
 	}
 
 }
