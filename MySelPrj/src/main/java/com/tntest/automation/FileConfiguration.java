@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.filefilter.FileFilterUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.io.monitor.FileAlterationListenerAdaptor;
 import org.apache.commons.io.monitor.FileAlterationMonitor;
 import org.apache.commons.io.monitor.FileAlterationObserver;
@@ -26,7 +28,8 @@ import org.apache.log4j.Logger;
  */
 public class FileConfiguration extends FileAlterationListenerAdaptor {
 
-	private static final String PATH_SYS_CONF = "conf/conf.properties";
+	private static final String DIR_SYS_CONF = "conf";
+	private static final String FILE_SYS_CONF = "conf.properties";
 	private static Logger log = Logger.getLogger(FileConfiguration.class);
 	private Properties ps = new Properties();
 	private static FileConfiguration _instance;
@@ -190,7 +193,7 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 
 	public void loadConfs() {
 		try {
-			ps.load(new InputStreamReader( new FileInputStream(new File(PATH_SYS_CONF)), "UTF-8"));
+			ps.load(new InputStreamReader( new FileInputStream(new File(DIR_SYS_CONF + File.separator + FILE_SYS_CONF)), "UTF-8"));
 		} catch (FileNotFoundException e) {
 			log.error("sys.conf cannot be found!", e);
 		} catch (IOException e) {
@@ -215,8 +218,9 @@ public class FileConfiguration extends FileAlterationListenerAdaptor {
 	
 	public static FileConfiguration generateInstance() {
 		long interval = TimeUnit.SECONDS.toMillis(1);
+		IOFileFilter filter = FileFilterUtils.nameFileFilter(FILE_SYS_CONF);
 		FileAlterationObserver observer = new FileAlterationObserver(
-				PATH_SYS_CONF);
+				DIR_SYS_CONF, filter);
 		FileConfiguration instance = new FileConfiguration();
 		instance.loadConfs();
 		log.info("First load configruation: " + instance.getPs());
